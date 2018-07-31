@@ -39,6 +39,7 @@ jobs:
           command: |
             export AWS_ACCESS_KEY_ID=${AWS_KEY_ID}
             export AWS_SECRET_ACCESS_KEY=${AWS_KEY_SECRET}
+            export AWS_DEFAULT_REGION=${AWS_REGION}
             aws lambda create-function --function-name cci-demo --runtime python3.6 --role ${AWS_USER_ARN}  --handler main --zip-file fileb://output/bundle.zip
             #aws lambda update-function-code--function-name <<existing name>> --zip-file <<path to zip>> --publish
 
