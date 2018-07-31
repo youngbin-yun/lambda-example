@@ -4,7 +4,6 @@ jobs:
   build:
     docker:
       - image: circleci/python:2.7-jessie
-    working_directory: ~/circleci-docs
     steps:
       - checkout
       - run:
@@ -23,11 +22,12 @@ jobs:
             zip -r output/bundle.zip lambda.py deps/*
       - persist_to_workspace:
           root: output
+          paths:
+            - bundle.zip
 
   deploy:
     docker:
       - image: circleci/python:2.7-jessie
-    working_directory: ~/circleci-docs
     steps: 
       - attach_workspace:
           at: output
