@@ -43,7 +43,7 @@ jobs:
             export FUNCTION_NAME=cci-demo
             result=`aws lambda create-function --function-name ${FUNCTION_NAME} --runtime python3.6 --role ${AWS_ROLE_ARN}  --handler main --zip-file fileb://output/bundle.zip 2>&1 || echo "Unable to Create Function" >&2`
             echo $result
-            if [[ "$result" == *"Function already exists"* ]]; then
+            if [[ "$result" == *"Function already exist"* ]]; then
               echo "Function exists, attempting update to LATEST"
               aws lambda update-function-code --function-name ${FUNCTION_NAME} --zip-file fileb://output/bundle.zip --publish            
             fi
