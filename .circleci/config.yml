@@ -1,0 +1,55 @@
+version: 2
+jobs:
+
+  build:
+    docker:
+      - image: circleci/python:2.7-jessie
+    working_directory: ~/circleci-docs
+    steps:
+      - checkout
+      - run:
+          name: Package Python Lambda Zip
+          command: |
+            mkdir deps && touch deps/__init__.py
+            pip install requests -t deps
+      - run:
+          name: Test
+          command: |
+            python lambda.py
+      - run:
+          name: Bundle
+          command: |
+            mkdir output
+            zip -r output/bundle.zip lambda.py deps/*
+      - persist_to_workspace:
+          root: output
+
+  deploy:
+    docker:
+      - image: circleci/python:2.7-jessie
+    working_directory: ~/circleci-docs
+    steps: 
+      - attach_workspace:
+          at: output
+      - run:
+          name: Install awscli
+          command: sudo pip install awscli
+      - run:
+          name: Publish Lambda
+          command: |
+            export AWS_ACCESS_KEY_ID=${AWS_KEY_ID}
+            export AWS_SECRET_ACCESS_KEY=${AWS_KEY_SECRET}
+            aws lambda create-function --function-name cci-demo --runtime python3.6 --role ${AWS_USER_ARN}  --handler main --zip-file fileb://output/bundle.zip
+            #aws lambda update-function-code--function-name <<existing name>> --zip-file <<path to zip>> --publish
+
+workflows:
+  version: 2
+  build-deploy:
+    jobs:
+      - build
+      - deploy:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
