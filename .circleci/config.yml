@@ -41,7 +41,7 @@ jobs:
             export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
             export AWS_DEFAULT_REGION=${AWS_REGION}
             export FUNCTION_NAME=cci-demo
-            result=`aws lambda create-function --function-name ${FUNCTION_NAME} --runtime python3.6 --role ${AWS_ROLE_ARN}  --handler main --zip-file fileb://output/bundle.zip 2>&1 || echo "Unable to Create Function >&2"`
+            result=`aws lambda create-function --function-name ${FUNCTION_NAME} --runtime python3.6 --role ${AWS_ROLE_ARN}  --handler main --zip-file fileb://output/bundle.zip 2>&1 || echo "Unable to Create Function" >&2`
             echo $result
             if [[ "$result" == *"Function already exists"* ]]; then
               echo "Function exists, attempting update to LATEST"
