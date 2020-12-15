@@ -1,61 +1,21 @@
-version: 2
-jobs:
+version: 2.1
 
-  build:
-    docker:
-      - image: circleci/python:2.7-jessie
+orbs:
+  python: circleci/python@0.2.1
+
+jobs:
+  build-and-test:
+    executor: python/default
     steps:
       - checkout
+      - python/load-cache
+      - python/install-deps
+      - python/save-cache
       - run:
-          name: Package Python Lambda Zip
-          command: |
-            mkdir deps && touch deps/__init__.py
-            pip install requests -t deps
-      - run:
+          command: ./manage.py test
           name: Test
-          command: |
-            python lambda.py
-      - run:
-          name: Bundle
-          command: |
-            mkdir output
-            zip -r output/bundle.zip lambda.py deps/*
-      - persist_to_workspace:
-          root: output
-          paths:
-            - bundle.zip
-
-  deploy:
-    docker:
-      - image: circleci/python:2.7-jessie
-    steps: 
-      - attach_workspace:
-          at: output
-      - run:
-          name: Install awscli
-          command: sudo pip install awscli
-      - run:
-          name: Publish Lambda
-          command: |
-            export AWS_ACCESS_KEY_ID=${AWS_ACCESS_KEY_ID}
-            export AWS_SECRET_ACCESS_KEY=${AWS_SECRET_ACCESS_KEY}
-            export AWS_DEFAULT_REGION=${AWS_REGION}
-            export FUNCTION_NAME=cci-demo
-            result=`aws lambda create-function --function-name ${FUNCTION_NAME} --runtime python3.6 --role ${AWS_ROLE_ARN}  --handler main --zip-file fileb://output/bundle.zip 2>&1 || echo "Unable to Create Function" >&2`
-            echo $result
-            if [[ "$result" == *"Function already exist"* ]]; then
-              echo "Function exists, attempting update to LATEST"
-              aws lambda update-function-code --function-name ${FUNCTION_NAME} --zip-file fileb://output/bundle.zip --publish            
-            fi
 
 workflows:
-  version: 2
-  build-deploy:
+  main:
     jobs:
-      - build
-      - deploy:
-          requires:
-            - build
-          filters:
-            branches:
-              only: master
+      - build-and-test
